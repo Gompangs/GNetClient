@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text;
+using UnityTcpClient;
 
 public class Program
 {
@@ -10,25 +11,45 @@ public class Program
     {
         NetworkManager networkManager = new NetworkManager("127.0.0.1", 10100);
 
-        networkManager.Connect();
-
-        networkManager.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.NoDelay, true);
-
-        int val = networkManager.GetSocketOption(SocketOptionLevel.IP, SocketOptionName.NoDelay);
-        
-        Console.WriteLine(val);
+        string longText = "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd"
+            + "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd"
+            + "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd";
 
         networkManager.OnConnect += OnConnect;
+        networkManager.OnDisconnect += OnDisconnect;
+        networkManager.OnReceive += OnReceive;
+
+        networkManager.Connect();
         
         while (true)
         {
             Console.ReadLine();
-            networkManager.Send(Encoding.UTF8.GetBytes("test send"));
+            networkManager.Send(Encoding.UTF8.GetBytes(longText));
         }
+    }
+
+    private static void OnReceive(string message)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnDisconnect(string message)
+    {
+        throw new NotImplementedException();
     }
 
     private static void OnConnect(ConnectResult connectResult)
     {
-        Console.WriteLine("Main Connected");
+        Console.WriteLine("Connection Result : " + connectResult.isSuccess);
+        if (connectResult.isSuccess)
+        {
+            // when connection is success
+            Console.WriteLine("Connection EndPoint : " + connectResult.endpoint);
+            Console.WriteLine("Connection EndPoint : " + connectResult.addressFamily);
+        }
+        else
+        {
+            Console.WriteLine("Connection Fail : " + connectResult.exception);
+        }
     }
 }

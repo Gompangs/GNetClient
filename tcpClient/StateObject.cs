@@ -5,26 +5,23 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-public class StateObject
+internal class StateObject
 {
     // Client socket.
-    public Socket workSocket { get; set; }
+    internal Socket workSocket { get; set; }
 
     // check whether packet is first or not
-    public bool isFirstRead { get; set; } = true;
-
-    // Size of receive buffer.
-    public const int BufferSize = 256;
-
+    internal bool isFirstRead { get; set; } = true;
+    
     // total packet body size
-    public int packetSize { get; set; }
+    internal int packetSize { get; set; }
 
     // current received bytes size
-    public int totalReadBytesSize { get; set; }
+    internal int totalReadBytesSize { get; set; }
 
     // Receive buffer.
-    public byte[] buffer { get; set; } = new byte[BufferSize];
+    internal byte[] buffer { get; set; }
 
     // Receive buffer for temporary
-    public byte[] tempBuffer { get; set; } = new byte[BufferSize];
+    internal byte[] tempBuffer { get; set; }
 }

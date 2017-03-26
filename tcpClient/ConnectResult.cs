@@ -6,8 +6,13 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-public class ConnectResult
+namespace UnityTcpClient
 {
-    EndPoint endpoint;
-    AddressFamily addressFamily;
+    public class ConnectResult
+    {
+        public bool isSuccess { get; internal set; }
+        public Exception exception { get; internal set; }
+        public EndPoint endpoint { get; internal set; }
+        public AddressFamily addressFamily { get; internal set; }
+    }
 }
