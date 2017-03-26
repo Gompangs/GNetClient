@@ -43,6 +43,9 @@ public class NetworkManager
         }
     }
 
+    /// <summary>
+    /// Start Connect to Server
+    /// </summary>
     public void Connect()
     {
         // Connect to the remote endpoint.
