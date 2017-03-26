@@ -1,0 +1,6 @@
+c:\users\stack\documents\visual studio 2015\Projects\tcpClient\tcpClient\bin\Debug\tcpClient.exe.config
+c:\users\stack\documents\visual studio 2015\Projects\tcpClient\tcpClient\bin\Debug\tcpClient.exe
+c:\users\stack\documents\visual studio 2015\Projects\tcpClient\tcpClient\bin\Debug\tcpClient.pdb
+c:\users\stack\documents\visual studio 2015\Projects\tcpClient\tcpClient\obj\Debug\tcpClient.exe
+c:\users\stack\documents\visual studio 2015\Projects\tcpClient\tcpClient\obj\Debug\tcpClient.pdb
+c:\users\stack\documents\visual studio 2015\Projects\tcpClient\tcpClient\obj\Debug\Gompang.NetworkManager.csprojResolveAssemblyReference.cache
