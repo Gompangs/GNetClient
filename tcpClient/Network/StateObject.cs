@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -20,8 +21,5 @@ internal class StateObject
     internal int totalReadBytesSize { get; set; }
 
     // Receive buffer.
-    internal byte[] buffer { get; set; }
-
-    // Receive buffer for temporary
-    internal byte[] tempBuffer { get; set; }
+    internal List<byte[]> dataBuffer { get; set; }
 }

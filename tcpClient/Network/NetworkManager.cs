@@ -1,6 +1,7 @@
 ﻿using ServerToolkit.BufferManagement;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -11,7 +12,6 @@ namespace UnityTcpClient
 {
     public class NetworkManager
     {
-        // The port number for the remote device.
         private Socket client;
         private IPEndPoint remoteEP;
         
@@ -20,18 +20,22 @@ namespace UnityTcpClient
         public ConnectDelegate OnConnect;
 
         // Called when Data Received
-        public delegate void ReceiveDelegate(string message);
+        public delegate void ReceiveDelegate(byte[] data);
         public ReceiveDelegate OnReceive;
 
         // Called when Connection Disconnected
-        public delegate void DisconnectDelegate(string message);
+        public delegate void DisconnectDelegate(Exception e);
         public DisconnectDelegate OnDisconnect;
 
+        // 1MB Buffer Pool
         BufferPool pool = new BufferPool(1 * 1024 * 1024, 1, 1);
+
+        // Send, Receive Buffer
         IBuffer recvBuffer;
         IBuffer sendBuffer;
         
-        private int RECEIVE_BUFFER_SIZE = 1024;
+        // Receive Buffer Size
+        private int RECEIVE_BUFFER_SIZE = 256;
 
         public NetworkManager(string ip, int port)
         {
@@ -123,6 +127,7 @@ namespace UnityTcpClient
             // Create the state object.
             StateObject state = new StateObject();
             state.workSocket = client;
+            state.dataBuffer = new List<byte[]>();
 
             if (recvBuffer == null || recvBuffer.IsDisposed)
             {
@@ -145,45 +150,88 @@ namespace UnityTcpClient
             StateObject state = (StateObject)ar.AsyncState;
             client = state.workSocket;
 
-            int bytesRead = client.EndReceive(ar);
-
-            byte[] data = new byte[bytesRead > 0 ? bytesRead : 0];
-
-            if (recvBuffer != null && !recvBuffer.IsDisposed)
+            try
             {
-                if (bytesRead > 0)
-                {
-                    recvBuffer.CopyTo(data, 0, bytesRead);
+                int bytesRead = client.EndReceive(ar);
 
-                    //Do anything else you wish with read data here.
-                    Console.WriteLine("{0} readed", data.Length);
-                    Console.WriteLine("{0}", Encoding.UTF8.GetString(data));
+                byte[] data = new byte[bytesRead > 0 ? bytesRead : 0];
+
+                if (recvBuffer != null && !recvBuffer.IsDisposed)
+                {
+                    if (bytesRead > 0)
+                    {
+                        recvBuffer.CopyTo(data, 0, bytesRead);
+
+                        if (state.isFirstRead)
+                        {
+                            // 처음 읽기라면 Header에서 패킷 사이즈를 가져온다
+                            byte[] packetSize = new byte[4];
+                            recvBuffer.CopyTo(packetSize, 0, 4);
+                            if (BitConverter.IsLittleEndian)
+                            {
+                                // Little Endian일경우 Array 뒤집어준다.
+                                Array.Reverse(packetSize);
+                            }
+
+                            Console.WriteLine("Packet Body Size : " + BitConverter.ToInt32(packetSize, 0));
+
+                            // 패킷 크기 읽음
+                            state.packetSize = BitConverter.ToInt32(packetSize, 0);
+                            state.isFirstRead = false;
+                        }
+
+                        // increment total bytes read
+                        state.totalReadBytesSize += bytesRead;
+                        state.dataBuffer.Add(data);
+
+                        if (state.totalReadBytesSize == state.packetSize + 4)
+                        {
+                            // when all data received call delegate
+                            OnReceive(state.dataBuffer.SelectMany(a => a).ToArray());
+
+                            recvBuffer.Dispose();
+                            recvBuffer = pool.GetBuffer(RECEIVE_BUFFER_SIZE);
+
+                            // New Receive Buffer Allocate
+                            Receive(client);
+                        }
+                        else
+                        {
+                            // if data need to read more
+                            client.BeginReceive(recvBuffer.GetSegments(), SocketFlags.None, ReceiveCallback, state);
+                        }   
+                    }
                 }
 
-                //Dispose buffer if it's larger than a specified threshold
-                //if (recvBuffer.Size > BUFFER_SIZE_DISPOSAL_THRESHOLD)
-                //{
-                //    recvBuffer.Dispose();
-                //}
+                if (bytesRead <= 0) return;
+
+                //Read/Expect more data
+
+                // TODO : Continuous Data Handling needed
+
+                if (recvBuffer == null || recvBuffer.IsDisposed)
+                {
+                    //Get new receive buffer if it is not available.
+                    recvBuffer = pool.GetBuffer(RECEIVE_BUFFER_SIZE);
+                }
+                else if (recvBuffer.Size < RECEIVE_BUFFER_SIZE)
+                {
+                    //If the receive buffer size is smaller than desired buffer size,
+                    //dispose receive buffer and acquire a new one that is long enough.
+                    recvBuffer.Dispose();
+                    recvBuffer = pool.GetBuffer(RECEIVE_BUFFER_SIZE);
+                }
             }
-
-            if (bytesRead <= 0) return;
-
-            //Read/Expect more data
-            if (recvBuffer == null || recvBuffer.IsDisposed)
+            catch (SocketException e)
             {
-                //Get new receive buffer if it is not available.
-                recvBuffer = pool.GetBuffer(RECEIVE_BUFFER_SIZE);
+                // When socket exception occur -> disconnected
+                OnDisconnect(e);
             }
-            else if (recvBuffer.Size < RECEIVE_BUFFER_SIZE)
+            catch (Exception e)
             {
-                //If the receive buffer size is smaller than desired buffer size,
-                //dispose receive buffer and acquire a new one that is long enough.
-                recvBuffer.Dispose();
-                recvBuffer = pool.GetBuffer(RECEIVE_BUFFER_SIZE);
+                // When Exception Occur -> maybe is not disconnected
+                Console.WriteLine(e.ToString());
             }
-
-            client.BeginReceive(recvBuffer.GetSegments(), SocketFlags.None, ReceiveCallback, state);
         }
 
         public void Send(byte[] byteData)

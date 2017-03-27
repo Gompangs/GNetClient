@@ -23,19 +23,19 @@ public class Program
         
         while (true)
         {
-            Console.ReadLine();
             networkManager.Send(Encoding.UTF8.GetBytes(longText));
+            Thread.Sleep(20);
         }
     }
 
-    private static void OnReceive(string message)
+    private static void OnReceive(byte[] data)
     {
-        throw new NotImplementedException();
+        Console.WriteLine("Received : {0}", data.Length);
     }
 
-    private static void OnDisconnect(string message)
+    private static void OnDisconnect(Exception e)
     {
-        throw new NotImplementedException();
+        Console.WriteLine("Disconnected with exception : {0}", e.ToString());
     }
 
     private static void OnConnect(ConnectResult connectResult)
