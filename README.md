@@ -34,5 +34,19 @@ Last, Try Connect to Server
 networkManager.Connect();
 ```
 
+Send data to server(It will be extent to more types)
+```csharp
+byte[] someData;
+networkManager.Send(someData);
+```
+
+Receiving Data from Server -> OnReceive() function will called.
+```csharp
+private void OnReceive(byte[] data)
+{
+    Console.WriteLine("Received : {0}", data.Length);
+}
+```
+
 ## References
 * [ServerToolKit(Buffer Pool) by tenor](https://github.com/tenor/ServerToolkit)
