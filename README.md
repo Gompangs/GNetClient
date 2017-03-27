@@ -1,9 +1,11 @@
 # UnityTcpClient
 This Project for Unity(3D) TCP Client.
 
-The goal is "Simple to Use", "Support basic function of TCP Client"
+## Background
+There are few projects in github which "correctly" work with TCP Unity3D.
 
-It's based on C#(.net) Tcp Socket with some Buffer Pool for performance.
+I want use some library for my project, but many projects have lack of usage or very oldest of last commit.
 
-
-
+So, I thought this is worthy to make library to Unity TCP Client who want to use simply like me.
+## Goal
+## Usage
