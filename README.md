@@ -17,7 +17,7 @@ I'll release when it comes to stable version to use.
 (Not Recommend using now)
 
 ## Usage(beta)
-Below instructions must called sequencially.
+*Below instructions must called sequencially.*
 
 First, creating NetworkManager Instance
 ```csharp
