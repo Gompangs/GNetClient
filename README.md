@@ -41,7 +41,6 @@ Send data to server(It will be extent to more types)
 byte[] someData;
 networkManager.Send(someData);
 ```
-**After Connect(), Receive() delegates will automatically called**
 
 Receiving Data from Server -> OnReceive() function will called.
 ```csharp
