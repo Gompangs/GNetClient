@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServerToolkit.BufferManagement;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,9 +14,6 @@ namespace UnityTcpClient
         // The port number for the remote device.
         private Socket client;
         private IPEndPoint remoteEP;
-
-        // Initial Buffer size is 256
-        private int bufferSize = 256;
         
         // Called when Connection Established
         public delegate void ConnectDelegate(ConnectResult connectResult);
@@ -28,6 +26,12 @@ namespace UnityTcpClient
         // Called when Connection Disconnected
         public delegate void DisconnectDelegate(string message);
         public DisconnectDelegate OnDisconnect;
+
+        BufferPool pool = new BufferPool(1 * 1024 * 1024, 1, 1);
+        IBuffer recvBuffer;
+        IBuffer sendBuffer;
+        
+        private int RECEIVE_BUFFER_SIZE = 1024;
 
         public NetworkManager(string ip, int port)
         {
@@ -49,12 +53,7 @@ namespace UnityTcpClient
                 Console.WriteLine(e.ToString());
             }
         }
-
-        public void SetBufferSize(int bufferSize)
-        {
-            this.bufferSize = bufferSize;
-        }
-
+        
         /// <summary>
         /// Start Connect to Server
         /// </summary>
@@ -121,111 +120,101 @@ namespace UnityTcpClient
 
         private void Receive(Socket client)
         {
-            try
-            {
-                // Create the state object.
-                StateObject state = new StateObject();
-                state.workSocket = client;
+            // Create the state object.
+            StateObject state = new StateObject();
+            state.workSocket = client;
 
-                // TODO : Byte Buffer Pooling
-                state.buffer = new byte[bufferSize];
-                state.tempBuffer = new byte[bufferSize];
-
-                // Begin receiving the data from the remote device.
-                client.BeginReceive(state.buffer, 0, bufferSize, 0, new AsyncCallback(ReceiveCallback), state);
-            }
-            catch (Exception e)
+            if (recvBuffer == null || recvBuffer.IsDisposed)
             {
-                Console.WriteLine(e.ToString());
+                //Get new receive buffer if it is not available.
+                recvBuffer = pool.GetBuffer(RECEIVE_BUFFER_SIZE);
             }
+            else if (recvBuffer.Size < RECEIVE_BUFFER_SIZE)
+            {
+                //If the receive buffer size is smaller than desired buffer size,
+                //dispose receive buffer and acquire a new one that is long enough.
+                recvBuffer.Dispose();
+                recvBuffer = pool.GetBuffer(RECEIVE_BUFFER_SIZE);
+            }
+
+            client.BeginReceive(recvBuffer.GetSegments(), SocketFlags.None, ReceiveCallback, state);
         }
 
         private void ReceiveCallback(IAsyncResult ar)
         {
-            try
+            StateObject state = (StateObject)ar.AsyncState;
+            client = state.workSocket;
+
+            int bytesRead = client.EndReceive(ar);
+
+            byte[] data = new byte[bytesRead > 0 ? bytesRead : 0];
+
+            if (recvBuffer != null && !recvBuffer.IsDisposed)
             {
-                StateObject state = (StateObject)ar.AsyncState;
-                client = state.workSocket;
-
-                int bytesRead = client.EndReceive(ar);
-
-                if (state.isFirstRead)
-                {
-                    // 처음 읽기라면 Header에서 패킷 사이즈를 가져온다
-                    byte[] packetSize = new byte[4];
-                    Buffer.BlockCopy(state.buffer, 0, packetSize, 0, 4);
-
-                    if (BitConverter.IsLittleEndian)
-                    {
-                        // Little Endian일경우 Array 뒤집어준다.
-                        Array.Reverse(packetSize);
-                    }
-
-                    Console.WriteLine("Packet Body Size : " + BitConverter.ToInt32(packetSize, 0));
-
-                    // 패킷 크기 읽음
-                    state.packetSize = BitConverter.ToInt32(packetSize, 0);
-                    state.isFirstRead = false;
-                }
-
-                byte[] temp = new byte[bytesRead];
-
-                Array.Copy(state.buffer, temp, bytesRead);
-
                 if (bytesRead > 0)
                 {
-                    state.totalReadBytesSize += bytesRead;
-                    Console.WriteLine("Read : {0}, Total : {1}", bytesRead, state.totalReadBytesSize);
+                    recvBuffer.CopyTo(data, 0, bytesRead);
 
-                    // Header 포함한 크기만큼 다 읽었다면
-                    if (state.totalReadBytesSize == state.packetSize + 4)
-                    {
-                        // 패킷 크기만큼 다 읽엇다면
-                        Console.WriteLine("Received Complete.");
-
-                        // Receive를 다시 호출해서 Read를 새로 한다.
-                        Receive(client);
-                    }
-                    else
-                    {
-                        // 아직 
-                        Array.Copy(state.buffer, state.tempBuffer, bytesRead);
-
-                        // Get the rest of the data.
-                        client.BeginReceive(state.buffer, 0, bufferSize, 0,
-                            new AsyncCallback(ReceiveCallback), state);
-                    }
+                    //Do anything else you wish with read data here.
+                    Console.WriteLine("{0} readed", data.Length);
+                    Console.WriteLine("{0}", Encoding.UTF8.GetString(data));
                 }
+
+                //Dispose buffer if it's larger than a specified threshold
+                //if (recvBuffer.Size > BUFFER_SIZE_DISPOSAL_THRESHOLD)
+                //{
+                //    recvBuffer.Dispose();
+                //}
             }
-            catch (Exception e)
+
+            if (bytesRead <= 0) return;
+
+            //Read/Expect more data
+            if (recvBuffer == null || recvBuffer.IsDisposed)
             {
-                Console.WriteLine(e.ToString());
+                //Get new receive buffer if it is not available.
+                recvBuffer = pool.GetBuffer(RECEIVE_BUFFER_SIZE);
             }
+            else if (recvBuffer.Size < RECEIVE_BUFFER_SIZE)
+            {
+                //If the receive buffer size is smaller than desired buffer size,
+                //dispose receive buffer and acquire a new one that is long enough.
+                recvBuffer.Dispose();
+                recvBuffer = pool.GetBuffer(RECEIVE_BUFFER_SIZE);
+            }
+
+            client.BeginReceive(recvBuffer.GetSegments(), SocketFlags.None, ReceiveCallback, state);
         }
 
         public void Send(byte[] byteData)
         {
             if (client.Connected)
             {
-                // Begin sending the data to the remote device.
-                client.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), client);
+                sendBuffer = pool.GetBuffer(byteData.Length);
+                sendBuffer.FillWith(byteData);
+                client.BeginSend(sendBuffer.GetSegments(), SocketFlags.None, SendCallback, sendBuffer);
             }
         }
 
         private void SendCallback(IAsyncResult ar)
         {
+            var sendBuffer = (IBuffer)ar.AsyncState;
             try
             {
-                // Retrieve the socket from the state object.
-                client = (Socket)ar.AsyncState;
-
-                // Complete sending the data to the remote device.
-                int bytesSent = client.EndSend(ar);
-                Console.WriteLine("Sent {0} bytes to server.", bytesSent);
+                int sentBytes = client.EndSend(ar);
+                Console.WriteLine("{0} bytes sent", sentBytes);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.ToString());
+                //Handle Exception here
+                Console.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                if (sendBuffer != null)
+                {
+                    sendBuffer.Dispose();
+                }
             }
         }
     }
