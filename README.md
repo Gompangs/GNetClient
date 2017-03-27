@@ -12,6 +12,19 @@ The goal is simple. "working on Unity3D" and "Well working"
 
 
 ## Usage
+```csharp
+// create instance NetworkManager
+NetworkManager networkManager = new NetworkManager("127.0.0.1", 10100);
+
+// Adding Delegates for Operations.
+networkManager.OnConnect += OnConnect;
+networkManager.OnDisconnect += OnDisconnect;
+networkManager.OnReceive += OnReceive;
+
+// Start Connect to server
+networkManager.Connect();
+
+```
 
 ## References
 * [ServerToolKit(Buffer Pool) by tenor](https://github.com/tenor/ServerToolkit)
