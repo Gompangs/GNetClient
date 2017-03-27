@@ -10,20 +10,28 @@ So, I thought this is worthy to make library to Unity TCP Client who want to use
 ## Goal
 The goal is simple. "working on Unity3D" and "Well working"
 
+But, current state is unstable to use official.
+I'm trying enhance structures and build additional convenience for developer.
 
-## Usage
+I'll release when it comes to stable version to use.
+(Not Recommend using now)
+
+## Usage(beta)
+
+First, creating NetworkManager Instance
 ```csharp
-// create instance NetworkManager
 NetworkManager networkManager = new NetworkManager("127.0.0.1", 10100);
+```
 
-// Adding Delegates for Operations.
+And, Adding Delegates for Network Operations.
+```csharp
 networkManager.OnConnect += OnConnect;
 networkManager.OnDisconnect += OnDisconnect;
 networkManager.OnReceive += OnReceive;
-
-// Start Connect to server
+```
+Last, Try Connect to Server
+```csharp
 networkManager.Connect();
-
 ```
 
 ## References
