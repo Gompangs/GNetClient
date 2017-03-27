@@ -35,7 +35,7 @@ Last, Try Connect to Server
 networkManager.Connect();
 ```
 
-**Use After Connect()**
+**Use After Connect()**<br/>
 Send data to server(It will be extent to more types)
 ```csharp
 byte[] someData;
