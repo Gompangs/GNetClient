@@ -7,8 +7,8 @@
     <ProjectGuid>{8B572C95-7A7F-4938-B9F6-E6423DC98EEF}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UnityTcpClient</RootNamespace>
-    <AssemblyName>UnityTcpClient</AssemblyName>
+    <RootNamespace>GNetClient</RootNamespace>
+    <AssemblyName>GNetClient</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
