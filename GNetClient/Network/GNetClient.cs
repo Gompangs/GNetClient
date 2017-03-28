@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using UnityTcpClient.Network;
 
@@ -259,15 +260,48 @@ namespace UnityTcpClient
             }
         }
 
-        public void Send(byte[] byteData)
+        public bool Send(byte[] data)
         {
             if (client.Connected)
             {
                 // TODO : direct send -> using queue and send process
-                sendBuffer = pool.GetBuffer(byteData.Length);
-                sendBuffer.FillWith(byteData);
+                sendBuffer = pool.GetBuffer(data.Length);
+                sendBuffer.FillWith(data);
                 client.BeginSend(sendBuffer.GetSegments(), SocketFlags.None, SendCallback, sendBuffer);
             }
+            return true;
+        }
+
+        public bool Send(string data)
+        {
+            if (client.Connected)
+            {
+                // TODO : direct send -> using queue and send process
+                sendBuffer = pool.GetBuffer(data.Length);
+                sendBuffer.FillWith(Encoding.UTF8.GetBytes(data));
+                client.BeginSend(sendBuffer.GetSegments(), SocketFlags.None, SendCallback, sendBuffer);
+            }
+            return true;
+        }
+
+        public bool Send(object data)
+        {
+            if (client.Connected)
+            {
+                // TODO : direct send -> using queue and send process
+                if (data == null)
+                    return false;
+
+                BinaryFormatter bf = new BinaryFormatter();
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    bf.Serialize(ms, data);
+                    sendBuffer = pool.GetBuffer(ms.ToArray().Length);
+                    sendBuffer.FillWith(ms.ToArray());
+                    client.BeginSend(sendBuffer.GetSegments(), SocketFlags.None, SendCallback, sendBuffer);
+                }
+            }
+            return true;
         }
 
         private void SendCallback(IAsyncResult ar)
