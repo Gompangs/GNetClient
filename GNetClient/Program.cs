@@ -10,21 +10,21 @@ public class Program
     public static int Main(string[] args)
     {
 
-        NetworkManager networkManager = NetworkManager.getInstance("127.0.0.1", 10100);
+        GNetClient netClient = GNetClient.getInstance("127.0.0.1", 10100);
         
         string longText = "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd"
             + "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd"
             + "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd";
 
-        networkManager.OnConnect += OnConnect;
-        networkManager.OnDisconnect += OnDisconnect;
-        networkManager.OnReceive += OnReceive;
+        netClient.OnConnect += OnConnect;
+        netClient.OnDisconnect += OnDisconnect;
+        netClient.OnReceive += OnReceive;
 
-        networkManager.Connect();
+        netClient.Connect();
         
         while (true)
         {
-            networkManager.Send(Encoding.UTF8.GetBytes(longText));
+            netClient.Send(Encoding.UTF8.GetBytes(longText));
             Thread.Sleep(20);
         }
     }

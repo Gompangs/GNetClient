@@ -9,7 +9,7 @@ using UnityTcpClient.Network;
 
 namespace UnityTcpClient
 {
-    public class NetworkManager
+    public class GNetClient : IDisposable
     {
         private Socket client;
         private IPEndPoint remoteEP;
@@ -38,24 +38,24 @@ namespace UnityTcpClient
         // Receive Buffer Size
         private int RECEIVE_BUFFER_SIZE = 256;
 
-        private static NetworkManager networkManager;
+        private static GNetClient networkManager;
         private static object lockObj = new Object();
 
         // Applying Singleton Pattern
-        public static NetworkManager getInstance(string ip, int port)
+        public static GNetClient getInstance(string ip, int port)
         {
             if (networkManager == null)
             {
                 lock (lockObj)
                 {
                     if (networkManager == null)
-                        networkManager = new NetworkManager(ip, port);
+                        networkManager = new GNetClient(ip, port);
                 }
             }
             return networkManager;
         }
 
-        public NetworkManager(string ip, int port)
+        public GNetClient(string ip, int port)
         {
             // Connect to a remote device.
             try
@@ -137,9 +137,11 @@ namespace UnityTcpClient
 
         public void Disconnect()
         {
-            // Release the socket.
+            // Disconnect from Server
+            // It's different between Disconnect() and Dispose()
+            // Disconnect() can reconnect again, Dispose() is totally remove all objects.
             client.Shutdown(SocketShutdown.Both);
-            client.Close();
+            client.Disconnect(true); // Reuse flag true
         }
 
         private void Receive(Socket client)
@@ -308,6 +310,34 @@ namespace UnityTcpClient
                 offset += data.Length;
             }
             return ret;
+        }
+
+        public void Dispose()
+        {
+            // Free resources of NetworkManager
+            networkManager = null;
+
+            // Buffers
+            if (!recvBuffer.IsDisposed)
+                recvBuffer.Dispose();
+
+            if (!sendBuffer.IsDisposed)
+                sendBuffer.Dispose();
+
+            // Buffer Pool
+            pool.TryFreeSlabs();
+            pool = null;
+
+            // Send Queue
+            sendQueue.Clear();
+            sendQueue = null;
+
+            // Closing Socket
+            if (client.Connected)
+            {
+                client.Shutdown(SocketShutdown.Both);
+                client.Close();
+            }
         }
     }
 }
