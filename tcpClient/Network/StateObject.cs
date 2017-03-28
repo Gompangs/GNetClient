@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
 internal class StateObject
 {
@@ -12,7 +10,7 @@ internal class StateObject
     internal Socket workSocket { get; set; }
 
     // check whether packet is first or not
-    internal bool isFirstRead { get; set; } = true;
+    internal bool isFirstRead  { get; set; }
     
     // total packet body size
     internal int packetSize { get; set; }

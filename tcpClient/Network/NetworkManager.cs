@@ -2,11 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
+using UnityTcpClient.Network;
 
 namespace UnityTcpClient
 {
@@ -33,7 +32,9 @@ namespace UnityTcpClient
         // Send, Receive Buffer
         IBuffer recvBuffer;
         IBuffer sendBuffer;
-        
+
+        Queue<GPacket> sendQueue;
+
         // Receive Buffer Size
         private int RECEIVE_BUFFER_SIZE = 256;
 
@@ -46,7 +47,9 @@ namespace UnityTcpClient
                 IPAddress ipAddress = IPAddress.Parse(ip);
                 remoteEP = new IPEndPoint(ipAddress, port);
 
-                // Create Buffer
+                // Create Send Queue
+                sendQueue = new Queue<GPacket>();
+                
 
                 // Create a TCP/IP socket.
                 client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -127,6 +130,7 @@ namespace UnityTcpClient
             // Create the state object.
             StateObject state = new StateObject();
             state.workSocket = client;
+            state.isFirstRead = true;
             state.dataBuffer = new List<byte[]>();
 
             if (recvBuffer == null || recvBuffer.IsDisposed)
@@ -187,7 +191,9 @@ namespace UnityTcpClient
                         if (state.totalReadBytesSize == state.packetSize + 4)
                         {
                             // when all data received call delegate
-                            OnReceive(state.dataBuffer.SelectMany(a => a).ToArray());
+                            // Removing Linq
+                            byte[] resultArr = GetRecvArray(state.dataBuffer);
+                            OnReceive(resultArr);
 
                             recvBuffer.Dispose();
                             recvBuffer = pool.GetBuffer(RECEIVE_BUFFER_SIZE);
@@ -238,6 +244,7 @@ namespace UnityTcpClient
         {
             if (client.Connected)
             {
+                // TODO : direct send -> using queue and send process
                 sendBuffer = pool.GetBuffer(byteData.Length);
                 sendBuffer.FillWith(byteData);
                 client.BeginSend(sendBuffer.GetSegments(), SocketFlags.None, SendCallback, sendBuffer);
@@ -254,7 +261,7 @@ namespace UnityTcpClient
             }
             catch (Exception ex)
             {
-                //Handle Exception here
+                // TODO : Packet Recovery -> doesn't sent to server
                 Console.WriteLine(ex.ToString());
             }
             finally
@@ -264,6 +271,26 @@ namespace UnityTcpClient
                     sendBuffer.Dispose();
                 }
             }
+        }
+
+        public byte[] GetRecvArray(List<byte[]> dest)
+        {
+            // get total size
+            int totalSize = 0;
+            foreach (byte[] arr in dest)
+            {
+                totalSize += arr.Length;
+            }
+
+            byte[] ret = new byte[totalSize];
+            int offset = 0;
+
+            foreach (byte[] data in dest)
+            {
+                Buffer.BlockCopy(data, 0, ret, offset, data.Length);
+                offset += data.Length;
+            }
+            return ret;
         }
     }
 }
