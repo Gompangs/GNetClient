@@ -19,9 +19,9 @@ I'll release when it comes to stable version to use.
 ## Usage(beta)
 *Below instructions must called sequencially.*
 
-First, creating NetworkManager Instance
+First, get instance from NetworkManager(only one object will be created by Singleton)
 ```csharp
-NetworkManager networkManager = new NetworkManager("127.0.0.1", 10100);
+NetworkManager networkManager = NetworkManager.getInstance("127.0.0.1", 10100);
 ```
 
 And, Adding Delegates for Network Operations.
