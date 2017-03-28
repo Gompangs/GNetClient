@@ -23,16 +23,14 @@ public class Program
 
         Thread.Sleep(2000);
 
-        // Disconnect after 2s
-        netClient.Disconnect();
-
-        Thread.Sleep(2000);
-        // Reconnect after 2s
-        netClient.Connect();
-
-        Thread.Sleep(1000);
+        // try Reconnect
+        netClient.ReConnect();
 
         // Send some data
+        netClient.Send(Encoding.UTF8.GetBytes(longText));
+
+        Thread.Sleep(500);
+
         netClient.Send(Encoding.UTF8.GetBytes(longText));
 
         Console.ReadLine();

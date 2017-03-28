@@ -91,6 +91,24 @@ namespace GNetwork.Network
             client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
         }
 
+        public void ReConnect()
+        {
+            if (client.Connected)
+            {
+                try
+                {
+                    client.Shutdown(SocketShutdown.Both);
+                    client.Disconnect(true); // Reuse flag true
+                    this.Connect();
+                }
+                catch (Exception e)
+                {
+                    // Ignore the exception. The client probably already disconnected.
+                    Console.WriteLine(e.ToString());
+                }
+            }
+        }
+
         /// <summary>
         /// Set Option to Socket This method must called before Connect();
         /// </summary>
@@ -288,6 +306,11 @@ namespace GNetwork.Network
                 sendBuffer = pool.GetBuffer(data.Length);
                 sendBuffer.FillWith(data);
                 client.BeginSend(sendBuffer.GetSegments(), SocketFlags.None, SendCallback, sendBuffer);
+            }
+            else
+            {
+                // TODO : send buffered data after socket ready
+                Console.WriteLine("Socket Not Yet Ready");
             }
             return true;
         }
