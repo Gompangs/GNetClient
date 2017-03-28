@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GNetwork.GNetClient
+namespace GNetwork.Network
 {
     public class GPacket
     {

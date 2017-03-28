@@ -1,16 +1,15 @@
-﻿using System;
+﻿using GNetwork.Network;
+using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Text;
-using GNetwork.GNetClient;
+using System.Threading;
 
 public class Program
 {
     public static int Main(string[] args)
     {
-
-        GNetClient netClient = GNetClient.getInstance("127.0.0.1", 10100);
+        GNetClient netClient = GNetClient.GetInstance("127.0.0.1", 10100);
         
         string longText = "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd"
             + "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd"
@@ -21,12 +20,24 @@ public class Program
         netClient.OnReceive += OnReceive;
 
         netClient.Connect();
-        
-        while (true)
-        {
-            netClient.Send(Encoding.UTF8.GetBytes(longText));
-            Thread.Sleep(20);
-        }
+
+        Thread.Sleep(2000);
+
+        // Disconnect after 2s
+        netClient.Disconnect();
+
+        Thread.Sleep(2000);
+        // Reconnect after 2s
+        netClient.Connect();
+
+        Thread.Sleep(1000);
+
+        // Send some data
+        netClient.Send(Encoding.UTF8.GetBytes(longText));
+
+        Console.ReadLine();
+
+        return 1;
     }
 
     private static void OnReceive(byte[] data)
@@ -41,7 +52,6 @@ public class Program
 
     private static void OnConnect(ConnectResult connectResult)
     {
-        connectResult.addressFamily = AddressFamily.AppleTalk;
         Console.WriteLine("Connection Result : " + connectResult.isSuccess);
         if (connectResult.isSuccess)
         {

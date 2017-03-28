@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GNetwork.GNetClient
+namespace GNetwork.Network
 {
     // TODO : offer statistics for Network Operations.
     public class GStatistics

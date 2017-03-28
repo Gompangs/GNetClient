@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace GNetwork.GNetClient
+namespace GNetwork.Network
 {
     public class ConnectResult
     {

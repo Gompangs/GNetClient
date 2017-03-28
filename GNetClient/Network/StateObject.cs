@@ -4,7 +4,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 
-namespace GNetwork.GNetClient
+namespace GNetwork.Network
 {
     internal class StateObject
     {

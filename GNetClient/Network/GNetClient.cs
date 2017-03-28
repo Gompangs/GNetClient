@@ -6,9 +6,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using GNetwork.GNetClient;
 
-namespace GNetwork.GNetClient
+namespace GNetwork.Network
 {
     public class GNetClient : IDisposable
     {
@@ -40,17 +39,21 @@ namespace GNetwork.GNetClient
         private int RECEIVE_BUFFER_SIZE = 256;
 
         private static GNetClient networkManager;
-        private static object lockObj = new Object();
+        private static object lockObj = new object();
 
         // Applying Singleton Pattern
-        public static GNetClient getInstance(string ip, int port)
+        public static GNetClient GetInstance(string ip, int port)
         {
             if (networkManager == null)
             {
                 lock (lockObj)
                 {
                     if (networkManager == null)
+                    {
                         networkManager = new GNetClient(ip, port);
+                        Console.WriteLine("New GNetClient Created");
+                    }
+                        
                 }
             }
             return networkManager;
@@ -61,17 +64,14 @@ namespace GNetwork.GNetClient
             // Connect to a remote device.
             try
             {
-                // Establish the remote endpoint for the socket.
+                // Ready for Connect
+
                 IPAddress ipAddress = IPAddress.Parse(ip);
                 remoteEP = new IPEndPoint(ipAddress, port);
 
                 // Create Send Queue
                 sendQueue = new Queue<GPacket>();
                 
-
-                // Create a TCP/IP socket.
-                client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
             }
             catch (Exception e)
             {
@@ -84,6 +84,9 @@ namespace GNetwork.GNetClient
         /// </summary>
         public void Connect()
         {
+            // Create a TCP/IP socket.
+            client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
             // Connect to the remote endpoint.
             client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
         }
@@ -133,7 +136,11 @@ namespace GNetwork.GNetClient
                 connectResult.isSuccess = false;
                 connectResult.exception = e;
             }
-            OnConnect(connectResult);
+
+            if(connectResult != null)
+                OnConnect(connectResult);
+            else
+                OnConnect(null);
         }
 
         public void Disconnect()
@@ -141,8 +148,21 @@ namespace GNetwork.GNetClient
             // Disconnect from Server
             // It's different between Disconnect() and Dispose()
             // Disconnect() can reconnect again, Dispose() is totally remove all objects.
-            client.Shutdown(SocketShutdown.Both);
-            client.Disconnect(true); // Reuse flag true
+            if (client.Connected)
+            {
+                try
+                {
+                    client.Shutdown(SocketShutdown.Both);
+                }
+                catch (Exception e)
+                {
+                    // Ignore the exception. The client probably already disconnected.
+                    Console.WriteLine(e.ToString());
+                }
+                client.Disconnect(true); // Reuse flag true
+
+                Console.WriteLine(client.Connected);
+            }
         }
 
         private void Receive(Socket client)
@@ -352,11 +372,18 @@ namespace GNetwork.GNetClient
             networkManager = null;
 
             // Buffers
-            if (!recvBuffer.IsDisposed)
-                recvBuffer.Dispose();
-
-            if (!sendBuffer.IsDisposed)
-                sendBuffer.Dispose();
+            if(recvBuffer != null)
+            {
+                if (!recvBuffer.IsDisposed)
+                    recvBuffer.Dispose();
+            }
+            
+            if(sendBuffer != null)
+            {
+                if (!sendBuffer.IsDisposed)
+                    sendBuffer.Dispose();
+            }
+            
 
             // Buffer Pool
             pool.TryFreeSlabs();
