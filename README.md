@@ -57,4 +57,4 @@ Because, it will use in collect bytes and aggregation when buffer not yet finish
 So, Header of Packet(first 4bytes) forced to be use.
 
 ## References
-* [ServerToolKit(Buffer Pool) by tenor](https://github.com/tenor/ServerToolkit)
+* [ServerToolKit(Buffer Pool) - Slab Allocation by tenor](https://github.com/tenor/ServerToolkit)
