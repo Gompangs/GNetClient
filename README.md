@@ -1,5 +1,6 @@
 # GNetClient
-This Project for Unity(3D) TCP Client.
+This Project for Unity(3D) TCP Client.<br/>
+![Image of Yaktocat](https://secure.travis-ci.org/Gompangs/GNetClient.png)
 
 ## Background
 There are few projects in github which "correctly" work with TCP Unity3D.
