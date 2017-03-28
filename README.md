@@ -21,25 +21,25 @@ I'll release when it comes to stable version to use.
 
 First, get instance from NetworkManager(only one object will be created by Singleton)
 ```csharp
-NetworkManager networkManager = NetworkManager.getInstance("127.0.0.1", 10100);
+GNetClient netClient = GNetClient.getInstance("127.0.0.1", 10100);
 ```
 
 And, Adding Delegates for Network Operations.
 ```csharp
-networkManager.OnConnect += OnConnect;
-networkManager.OnDisconnect += OnDisconnect;
-networkManager.OnReceive += OnReceive;
+netClient.OnConnect += OnConnect;
+netClient.OnDisconnect += OnDisconnect;
+netClient.OnReceive += OnReceive;
 ```
 Last, Try Connect to Server
 ```csharp
-networkManager.Connect();
+netClient.Connect();
 ```
 
 **Use After Connect()**<br/>
 Send data to server(It will be extent to more types)
 ```csharp
 byte[] someData;
-networkManager.Send(someData);
+netClient.Send(someData);
 ```
 
 Receiving Data from Server -> OnReceive() function will called.
