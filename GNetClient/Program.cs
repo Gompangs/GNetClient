@@ -41,6 +41,7 @@ public class Program
 
     private static void OnConnect(ConnectResult connectResult)
     {
+        connectResult.addressFamily = AddressFamily.AppleTalk;
         Console.WriteLine("Connection Result : " + connectResult.isSuccess);
         if (connectResult.isSuccess)
         {
