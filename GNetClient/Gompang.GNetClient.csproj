@@ -45,8 +45,11 @@
     <Compile Include="Buffer\MemoryObjects.cs" />
     <Compile Include="Buffer\StreamObjects.cs" />
     <Compile Include="Network\ConnectResult.cs" />
+    <Compile Include="Network\GCommonUtils.cs" />
+    <Compile Include="Network\GConvertUtils.cs" />
     <Compile Include="Network\GNetClient.cs" />
     <Compile Include="Network\GPacket.cs" />
+    <Compile Include="Network\GStatistics.cs" />
     <Compile Include="Network\StateObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
