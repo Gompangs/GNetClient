@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text;
-using UnityTcpClient;
+using GNetwork.GNetClient;
 
 public class Program
 {

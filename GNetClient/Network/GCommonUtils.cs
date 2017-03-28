@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GNetClient.Network
+namespace GNetwork.GNetClient
 {
     // TODO : offer common utils for using GNetClient
     class GCommonUtils

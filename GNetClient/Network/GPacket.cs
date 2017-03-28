@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace UnityTcpClient.Network
+namespace GNetwork.GNetClient
 {
     public class GPacket
     {

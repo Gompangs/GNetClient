@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gompang.GNetClient", "GNetClient\Gompang.GNetClient.csproj", "{8B572C95-7A7F-4938-B9F6-E6423DC98EEF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gompang.GNetwork", "GNetClient\Gompang.GNetwork.csproj", "{8B572C95-7A7F-4938-B9F6-E6423DC98EEF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

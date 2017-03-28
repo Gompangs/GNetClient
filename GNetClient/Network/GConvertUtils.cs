@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GNetClient.Network
+namespace GNetwork.GNetClient
 {
     // TODO : offer convenience for RECV/SEND marshaller Opreations
     class GConvertUtils

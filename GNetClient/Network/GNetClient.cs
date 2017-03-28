@@ -6,9 +6,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using UnityTcpClient.Network;
+using GNetwork.GNetClient;
 
-namespace UnityTcpClient
+namespace GNetwork.GNetClient
 {
     public class GNetClient : IDisposable
     {
