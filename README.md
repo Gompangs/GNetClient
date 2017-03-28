@@ -2,6 +2,9 @@
 This Project for Unity(3D) TCP Client.<br/>
 ![Image of Yaktocat](https://secure.travis-ci.org/Gompangs/GNetClient.png)
 
+## Versions
+0.1v - Under Development on now
+
 ## Background
 There are few projects in github which "correctly" work with TCP Unity3D.
 
