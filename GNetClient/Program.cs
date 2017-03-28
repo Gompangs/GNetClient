@@ -9,8 +9,9 @@ public class Program
 {
     public static int Main(string[] args)
     {
-        NetworkManager networkManager = new NetworkManager("127.0.0.1", 10100);
 
+        NetworkManager networkManager = NetworkManager.getInstance("127.0.0.1", 10100);
+        
         string longText = "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd"
             + "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd"
             + "asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd";

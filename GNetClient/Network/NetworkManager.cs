@@ -38,6 +38,23 @@ namespace UnityTcpClient
         // Receive Buffer Size
         private int RECEIVE_BUFFER_SIZE = 256;
 
+        private static NetworkManager networkManager;
+        private static object lockObj = new Object();
+
+        // Applying Singleton Pattern
+        public static NetworkManager getInstance(string ip, int port)
+        {
+            if (networkManager == null)
+            {
+                lock (lockObj)
+                {
+                    if (networkManager == null)
+                        networkManager = new NetworkManager(ip, port);
+                }
+            }
+            return networkManager;
+        }
+
         public NetworkManager(string ip, int port)
         {
             // Connect to a remote device.
