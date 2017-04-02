@@ -9,8 +9,8 @@ namespace GNetwork.Network
 {
     public class GNetClient
     {
-        // Receive Buffer Size
-        private int RECEIVE_BUFFER_SIZE = 1024;
+        // Receive Buffer Size. default : 8K
+        private int RECEIVE_BUFFER_SIZE = 8192;
 
         // for connection
         private IPAddress ip;
@@ -68,13 +68,18 @@ namespace GNetwork.Network
             this.port = port;
         }
 
+        public void SetRecvBufferSize(int size)
+        {
+            this.RECEIVE_BUFFER_SIZE = size;
+        }
+
         private void Init()
         {
             socketArgs = new SocketAsyncEventArgs();
             
             disconnectFlag = new ManualResetEvent(false);
             connectFlag = new ManualResetEvent(false);
-            bufferManager = new BufferManager(10 * 1024 * 1024, RECEIVE_BUFFER_SIZE);
+            bufferManager = new BufferManager(10 * RECEIVE_BUFFER_SIZE * RECEIVE_BUFFER_SIZE, RECEIVE_BUFFER_SIZE); // default : 8MB
             bufferManager.InitBuffer();
 
             workerObject = new SendWorker();
@@ -87,6 +92,8 @@ namespace GNetwork.Network
 
         public bool Connect()
         {
+            // TODO : IF delegates are null -> throw error
+
             Init();
 
             // Create a socket and connect to the server
@@ -279,12 +286,19 @@ namespace GNetwork.Network
                 //Read data sent from the server
                 Socket sock = e.UserToken as Socket;
 
-                bufferManager.SetBuffer(e);
-                bool willRaiseEvent = sock.ReceiveAsync(e);
-                if (!willRaiseEvent)
+                if (bufferManager.SetBuffer(e))
                 {
-                    ProcessReceive(e);
+                    bool willRaiseEvent = sock.ReceiveAsync(e);
+                    if (!willRaiseEvent)
+                    {
+                        ProcessReceive(e);
+                    }
                 }
+                else
+                {
+                    // buffer is exceeded
+                }
+                
                 clientDataSentFlag.Set();
             }
             else
@@ -307,6 +321,29 @@ namespace GNetwork.Network
 
                 if (OnReceive != null)
                     OnReceive(packet);
+
+                // when data is truncated -> more receive data
+                // TODO : collecting data
+                if(e.BytesTransferred == RECEIVE_BUFFER_SIZE)
+                {
+                    if (bufferManager.SetBuffer(e))
+                    {
+                        bool willRaiseEvent = sock.ReceiveAsync(e);
+                        if (!willRaiseEvent)
+                        {
+                            ProcessReceive(e);
+                        }
+                    }
+                    else
+                    {
+                        // buffer is exceeded
+                    }
+                }
+                else
+                {
+                    // All data received
+                    Console.WriteLine("All data Received {0}", e.BytesTransferred);
+                }
             }
             else
             {

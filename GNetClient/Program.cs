@@ -36,18 +36,19 @@ public class Program
         netClient.OnDisconnect += OnDisconnect;
         netClient.OnReceive += OnReceive;
 
+        netClient.SetRecvBufferSize(8192);
+
         netClient.Connect();
         
         while (true)
         {
             netClient.Send("Hello");
-            Thread.Sleep(30);
-            //string line = Console.ReadLine();
+            string line = Console.ReadLine();
 
-            //if (line.Equals("rec"))
-            //{
-            //    netClient.Reconnect();
-            //}
+            if (line.Equals("rec"))
+            {
+                netClient.Reconnect();
+            }
         }
     }
 
