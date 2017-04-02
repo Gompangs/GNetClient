@@ -46,6 +46,7 @@
     <Compile Include="Network\GNetClient.cs" />
     <Compile Include="Network\GPacket.cs" />
     <Compile Include="Network\GStatistics.cs" />
+    <Compile Include="Network\SendWorker.cs" />
     <Compile Include="Network\StateObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

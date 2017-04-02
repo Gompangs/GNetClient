@@ -41,18 +41,19 @@ public class Program
         while (true)
         {
             netClient.Send("Hello");
-            string line = Console.ReadLine();
+            Thread.Sleep(30);
+            //string line = Console.ReadLine();
 
-            if (line.Equals("rec"))
-            {
-                netClient.Reconnect();
-            }
+            //if (line.Equals("rec"))
+            //{
+            //    netClient.Reconnect();
+            //}
         }
     }
 
     private static void OnReceive(GPacket data)
     {
-        Console.WriteLine("Received({0}) : {1}", data.size, Encoding.UTF8.GetString(data.data, 0, data.size));
+        Console.WriteLine("Received({0}) : {1}", data.size, GStatistics.getTotalRecvBytes());
     }
 
     private static void OnDisconnect()
