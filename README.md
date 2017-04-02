@@ -61,4 +61,5 @@ Because, it will use in collect bytes and aggregation when buffer not yet finish
 So, Header of Packet(first 4bytes) forced to be use.
 
 ## References
-* [ServerToolKit(Buffer Pool) - Slab Allocation by tenor](https://github.com/tenor/ServerToolkit)
+* [BufferManager for SocketAsyncEventArgs] https://msdn.microsoft.com/en-us/library/bb517542(VS.90).aspx
+* [SocketAsyncEventArgs Example] http://blog.ronischuetz.com/2010/05/async-socket-server-sample-in-c.html
