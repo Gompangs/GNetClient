@@ -55,10 +55,7 @@ private void OnReceive(byte[] data)
 ```
 
 ## Reminder
-When use this project, Server have to send data with "Header" on first 4bytes.
-Because, it will use in collect bytes and aggregation when buffer not yet finish.
 
-So, Header of Packet(first 4bytes) forced to be use.
 
 ## References
 * [BufferManager for SocketAsyncEventArgs](https://msdn.microsoft.com/en-us/library/bb517542(VS.90).aspx)
