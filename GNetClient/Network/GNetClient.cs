@@ -93,6 +93,7 @@ namespace GNetwork.Network
         public bool Connect()
         {
             // TODO : IF delegates are null -> throw error
+            CheckDelegates();
 
             Init();
 
@@ -104,6 +105,24 @@ namespace GNetwork.Network
             socketArgs.DisconnectReuseSocket = true;
             
             return sock.ConnectAsync(socketArgs);
+        }
+
+        private void CheckDelegates()
+        {
+            if (OnConnect == null)
+            {
+                throw new InvalidOperationException("GNetClient Delegate cannot be null. please set \"OnConnect\" delegate on your Class");
+            }
+
+            if (OnDisconnect == null)
+            {
+                throw new InvalidOperationException("GNetClient Delegate cannot be null. please set \"OnDisconnect\" delegate on your Class");
+            } 
+
+            if (OnReceive == null)
+            {
+                throw new InvalidOperationException("GNetClient Delegate cannot be null. please set \"OnReceive\" delegate on your Class");
+            }
         }
 
         public bool Reconnect()
