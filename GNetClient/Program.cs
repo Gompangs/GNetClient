@@ -37,17 +37,16 @@ public class Program
         netClient.OnReceive += OnReceive;
 
         netClient.SetRecvBufferSize(8192);
-
+        
         netClient.Connect();
         
         while (true)
         {
-            netClient.Send("Hello");
-            string line = Console.ReadLine();
+            var a = Console.ReadLine();
 
-            if (line.Equals("rec"))
+            if(a.Equals("s"))
             {
-                netClient.Reconnect();
+                netClient.Send("Hello");
             }
         }
     }

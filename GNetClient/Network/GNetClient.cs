@@ -15,6 +15,7 @@ namespace GNetwork.Network
         // for connection
         private IPAddress ip;
         private int port;
+        private Socket socket;
 
         private BufferManager bufferManager;
 
@@ -98,13 +99,13 @@ namespace GNetwork.Network
             Init();
 
             // Create a socket and connect to the server
-            Socket sock = new Socket(ip.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket = new Socket(ip.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socketArgs.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
             socketArgs.RemoteEndPoint = new IPEndPoint(ip, port);
-            socketArgs.UserToken = sock;
+            socketArgs.UserToken = socket;
             socketArgs.DisconnectReuseSocket = true;
             
-            return sock.ConnectAsync(socketArgs);
+            return socket.ConnectAsync(socketArgs);
         }
 
         private void CheckDelegates()
@@ -127,9 +128,7 @@ namespace GNetwork.Network
 
         public bool Reconnect()
         {
-            Socket sock = socketArgs.UserToken as Socket;
-
-            if (sock.Connected)
+            if (socket.Connected)
             {
                 if (Disconnect())
                 {
@@ -147,9 +146,7 @@ namespace GNetwork.Network
 
         public bool Send(byte[] data)
         {
-            Socket sock = socketArgs.UserToken as Socket;
-
-            if (sock.Connected && connectFlag.WaitOne())
+            if (socket.Connected && connectFlag.WaitOne())
             {
                 GPacket packet = new GPacket();
                 packet.data = data;
@@ -167,9 +164,7 @@ namespace GNetwork.Network
 
         public bool Send(string data)
         {
-            Socket sock = socketArgs.UserToken as Socket;
-
-            if (sock.Connected && connectFlag.WaitOne())
+            if (socket.Connected && connectFlag.WaitOne())
             {
                 GPacket packet = new GPacket();
                 packet.data = Encoding.UTF8.GetBytes(data);
@@ -188,14 +183,12 @@ namespace GNetwork.Network
         internal bool SendPacket(GPacket packet)
         {
             // Send Packet Directly which is pop from queue
-            Socket sock = socketArgs.UserToken as Socket;
-
             // Data Setting for Socket
             socketArgs.SetBuffer(packet.data, 0, packet.size);
 
             GStatistics.incSent(packet.size);
 
-            bool willRaiseEvent = sock.SendAsync(socketArgs);
+            bool willRaiseEvent = socket.SendAsync(socketArgs);
             if (!willRaiseEvent)
             {
                 ProcessSend(socketArgs);
@@ -212,16 +205,14 @@ namespace GNetwork.Network
             // Disconnect from Server
             // It's different between Disconnect() and Dispose()
             // Disconnect() can reconnect again, Dispose() is totally remove all objects.
-            Socket client = socketArgs.UserToken as Socket;
-            
-            if (client.Connected)
+            if (socket.Connected)
             {
                 try
                 {
                     // Free Buffer
                     bufferManager.FreeBuffer(socketArgs);
                     workerObject.StopWork();
-                    client.DisconnectAsync(socketArgs);
+                    socket.DisconnectAsync(socketArgs);
                 }
                 catch (Exception e)
                 {
@@ -280,11 +271,31 @@ namespace GNetwork.Network
 
                 // Connect Done
                 connectResult.endpoint = socketArgs.RemoteEndPoint;
-                connectResult.addressFamily = (socketArgs.UserToken as Socket).AddressFamily;
+                connectResult.addressFamily = socket.AddressFamily;
                 connectResult.isSuccess = true;
 
                 if(OnConnect != null)
                     OnConnect(connectResult);
+
+                Console.WriteLine(e != null);
+                Console.WriteLine(e.UserToken != null);
+
+                // Start Receive
+                if (connectFlag.WaitOne())
+                {
+                    if (bufferManager.SetBuffer(e))
+                    {
+                        bool willRaiseEvent = socket.ReceiveAsync(e);
+                        if (!willRaiseEvent)
+                        {
+                            ProcessReceive(e);
+                        }
+                    }
+                    else
+                    {
+                        // buffer is exceeded
+                    }
+                }
             }
             else
             {
@@ -303,11 +314,9 @@ namespace GNetwork.Network
             if (e.SocketError == SocketError.Success)
             {
                 //Read data sent from the server
-                Socket sock = e.UserToken as Socket;
-
                 if (bufferManager.SetBuffer(e))
                 {
-                    bool willRaiseEvent = sock.ReceiveAsync(e);
+                    bool willRaiseEvent = socket.ReceiveAsync(e);
                     if (!willRaiseEvent)
                     {
                         ProcessReceive(e);
@@ -331,7 +340,6 @@ namespace GNetwork.Network
         {
             if (e.SocketError == SocketError.Success)
             {
-                Socket sock = e.UserToken as Socket;
                 GPacket packet = new GPacket();
                 packet.data = e.Buffer;
                 packet.size = e.BytesTransferred;
@@ -347,7 +355,7 @@ namespace GNetwork.Network
                 {
                     if (bufferManager.SetBuffer(e))
                     {
-                        bool willRaiseEvent = sock.ReceiveAsync(e);
+                        bool willRaiseEvent = socket.ReceiveAsync(e);
                         if (!willRaiseEvent)
                         {
                             ProcessReceive(e);
@@ -362,6 +370,9 @@ namespace GNetwork.Network
                 {
                     // All data received
                     Console.WriteLine("All data Received {0}", e.BytesTransferred);
+
+                    // Try receive again ...
+                    socket.ReceiveAsync(e);
                 }
             }
             else
